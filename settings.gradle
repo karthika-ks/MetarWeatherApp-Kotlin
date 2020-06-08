@@ -1,0 +1,2 @@
+rootProject.name='MetarBrowser'
+include ':app'

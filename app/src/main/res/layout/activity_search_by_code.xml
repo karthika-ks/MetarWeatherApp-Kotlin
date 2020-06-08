@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <data>
+        <import type="android.view.View"/>
+        <variable
+            name="searchViewModel"
+            type="com.example.metarbrowser.viewmodel.SearchCodeViewModel" />
+
+        <variable
+            name="detailsViewModel"
+            type="com.example.metarbrowser.viewmodel.MetarDetailsViewModel" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <RelativeLayout
+            android:id="@+id/app_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:color/holo_blue_light"
+            app:layout_constraintTop_toTopOf="parent"
+            android:paddingBottom="50dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:text="@string/label_metar_browser"
+                android:textColor="@android:color/white"
+                android:textSize="25sp"
+                android:textStyle="italic|bold" />
+
+        </RelativeLayout>
+
+        <LinearLayout
+            android:id="@+id/lyt_edit_code"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:orientation="horizontal"
+            android:weightSum="3"
+            android:gravity="center_vertical"
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_marginTop="50dp"
+            android:focusable="true"
+            android:focusableInTouchMode="true">
+
+            <EditText
+                android:id="@+id/edit_code"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="2.5"
+                android:layout_marginStart="10dp"
+                android:text="@={searchViewModel.editTextEntry}"
+                android:hint="@string/hint_icao_code"
+                android:maxLines="1"
+                android:scrollHorizontally="true"
+                android:ellipsize="end"
+                android:inputType="text"
+                android:background="@android:drawable/editbox_background_normal"/>
+
+            <ImageButton
+                android:id="@+id/btn_get_metar"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
+                android:layout_weight="0.5"
+                android:background="@android:drawable/dialog_holo_dark_frame"
+                android:src="@drawable/img_search"
+                android:onClick="@{()-> searchViewModel.onCodeSearchClicked()}"/>
+
+        </LinearLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toTopOf="@+id/include2"
+            app:layout_constraintTop_toBottomOf="@id/lyt_edit_code">
+
+            <include
+                android:id="@+id/lyt_details_view"
+                layout="@layout/layout_metar_data_details"
+                app:viewModel="@{detailsViewModel}"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_alignParentTop="true" />
+        </RelativeLayout>
+
+        <include
+            android:id="@+id/include2"
+            layout="@layout/item_layout_bottom"
+            app:viewModel="@{detailsViewModel}"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>
