@@ -15,6 +15,8 @@ class RepositoryManager: KoinComponent {
 
     fun insertMetar(metarData: MetarData) {
 
+        Log.i(TAG, "insertMetar: ${metarData.code}")
+
         CoroutineScope(Dispatchers.Default).launch {
 
             val metar: Metar? = metarData.toMetar()
@@ -26,6 +28,34 @@ class RepositoryManager: KoinComponent {
             }
         }
     }
+
+    fun updateMetar(metarData: MetarData) {
+        Log.i(TAG, "updateMetar: ${metarData.code}")
+
+        CoroutineScope(Dispatchers.Default).launch {
+
+            val metar: Metar? = metarData.toMetar()
+            val metarDao = MetarRoomDatabase.getDatabase(context).metarDao()
+
+            if (metar != null) {
+                Log.i(TAG, "Needs to update ${metar?.stationCode} to DB")
+                metarDao.updateMetar(metar)
+            }
+        }
+    }
+
+    suspend fun fetchMetar(stationCode: String): MetarData? {
+        Log.i(TAG, "fetchMetar: $stationCode")
+        var metar: MetarData? = null
+        val job = CoroutineScope(Dispatchers.Default).launch {
+            val metarDao = MetarRoomDatabase.getDatabase(context).metarDao()
+            metar = metarDao.fetchMetar(stationCode)?.toMetarData()
+        }
+        job.join()
+
+        return metar
+    }
+
 
     suspend fun fetchCachedMetar() : MutableList<MetarData> {
 
@@ -51,18 +81,19 @@ class RepositoryManager: KoinComponent {
         return metarDataList
     }
 
-    suspend fun fetchFilteredMetar() : List<MetarData> {
+    suspend fun fetchFilteredMetar() : MutableList<String> {
 
-        val metarDataList: MutableList<MetarData> = mutableListOf()
+        val metarDataList: MutableList<String> = mutableListOf()
 
         val job = CoroutineScope(Dispatchers.Default).launch {
             val metarDao = MetarRoomDatabase.getDatabase(context).metarDao()
             val metarDatas: List<Metar> = metarDao.fetchFilteredMetar()
 
             if (!metarDatas.isEmpty()) {
+
                 for (metar in metarDatas) {
-                    Log.i(TAG, "Code: ${metar.stationCode}, Station Name: ${metar.stationCode}, Decoded Data: ${metar.decodedData}")
-                    metarDataList.add(metar.toMetarData())
+                    Log.i(TAG, "fetchFilteredMetar: Code = ${metar.stationCode}")
+                    metarDataList.add(metar.stationCode)
                 }
             }
         }

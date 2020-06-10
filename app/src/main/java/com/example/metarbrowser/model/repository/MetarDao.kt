@@ -15,4 +15,7 @@ interface MetarDao {
 
     @Query("SELECT * FROM metar_table WHERE station_code LIKE 'ED%' ORDER BY station_name ASC")
     fun fetchFilteredMetar(): List<Metar>
+
+    @Query("SELECT * FROM metar_table WHERE station_code = :stationCode")
+    fun fetchMetar(stationCode: String): Metar?
 }
