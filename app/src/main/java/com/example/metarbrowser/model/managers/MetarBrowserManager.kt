@@ -3,6 +3,7 @@ package com.example.metarbrowser.model.managers
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
+import androidx.lifecycle.MutableLiveData
 import com.example.metarbrowser.model.interfaces.INetworkResponseCallback
 import com.example.metarbrowser.utilities.Constants
 import com.example.metarbrowser.utilities.Constants.BUNDLE_KEY_DATA
@@ -17,10 +18,13 @@ import com.example.metarbrowser.utilities.Constants.STATUS_NOT_AVAILABLE
 import com.example.metarbrowser.utilities.MetarData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.standalone.KoinComponent
 import org.koin.standalone.get
+import kotlin.jvm.internal.MagicApiIntrinsics
 
 class MetarBrowserManager: INetworkResponseCallback, KoinComponent {
 
@@ -28,6 +32,7 @@ class MetarBrowserManager: INetworkResponseCallback, KoinComponent {
     private var filteredStationList : MutableList<String>? = null
     private val metarDataMap : MutableMap<String, MetarData> = mutableMapOf()
     private var responseCallbacks : MutableList<INetworkResponseCallback> = mutableListOf()
+    private var filteredListMutableLiveData: MutableLiveData<MutableList<String>>? = null
 
     private val downloadManager: DownloadManager = get()
     private val repositoryManager: RepositoryManager = get()
@@ -42,6 +47,11 @@ class MetarBrowserManager: INetworkResponseCallback, KoinComponent {
                 metarDataMap.put(metarData.code, metarData)
             }
             filteredStationList = repositoryManager.fetchFilteredMetar()
+            filteredListMutableLiveData = MutableLiveData()
+
+            CoroutineScope(Main).launch {
+                filteredListMutableLiveData!!.value = filteredStationList
+            }
         }
         downloadManager.registerCallback(this)
         downloadManager.initialize()
@@ -72,6 +82,8 @@ class MetarBrowserManager: INetworkResponseCallback, KoinComponent {
             callback.onDataFetchComplete(type, bundle)
         }
     }
+
+    fun getMutableFilteredList(): MutableLiveData<MutableList<String>>? = filteredListMutableLiveData
 
     override fun onDataFetchComplete(dataType: Int, dataBundle: Bundle) {
         when(dataType) {
@@ -136,6 +148,9 @@ class MetarBrowserManager: INetworkResponseCallback, KoinComponent {
                         repositoryManager.insertMetar(MetarData(code = station))
                         metarDataMap[station] = MetarData(code = station)
                     }
+                }
+                CoroutineScope(Main).launch {
+                    filteredListMutableLiveData?.value = filteredStationList
                 }
 
                 sharedPrefEditor.putString(SHARED_PREF_KEY_FILTERED_LIST_STATUS, STATUS_DOWNLOAD_COMPLETE)
